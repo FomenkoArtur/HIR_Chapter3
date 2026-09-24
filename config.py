@@ -48,6 +48,13 @@ IDLE_THRESHOLD = 0.10 # порог холостого хода (10% диапаз
 
 # ========== СЦЕНАРИИ ==========
 SCENARIOS = {
+    'S4': {
+        'description': 'Без особой причины (контрольный сценарий)',
+        'rate_param': None,
+        'rate_value': 0.0,
+        'jump_param': None,
+        'jump_value': 0.0
+    },
     'S1': {
         'description': 'Тренд x1 (износ инструмента, токарная обработка)',
         'rate_param': 0,
@@ -60,14 +67,14 @@ SCENARIOS = {
         'rate_param': None,
         'rate_value': 0.0,
         'jump_param': 5,
-        'jump_value': 0.9
+        'jump_value': 1.6
     },
     'S3': {
         'description': 'Скачок x8 (недостаточное охлаждение, закалка)',
         'rate_param': None,
         'rate_value': 0.0,
         'jump_param': 7,
-        'jump_value': -0.8
+        'jump_value': -1.6
     }
 }
 

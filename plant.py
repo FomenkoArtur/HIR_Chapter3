@@ -14,32 +14,19 @@ class Plant:
     def __init__(self, seed=None):
         """
         Инициализация и калибровка контрольных карт.
-
-        Parameters
-        ----------
-        seed : int, optional
-            Сид для воспроизводимости калибровки
         """
         if seed is not None:
             np.random.seed(seed)
 
-        # Калибровка на базовом периоде
         self._calibrate_control_charts()
-
-        # Расчёт весовых коэффициентов (формула 11)
         self._compute_weights()
 
-        # Коэффициент эффективности управления
         self.C_RAW = C_RAW_FACTOR * self.S
-
-        # Программное задание
         self.G = G
 
     def _calibrate_control_charts(self):
         """
         Калибровка контрольных карт Шухарта по формулам (5) и (6).
-        UCL = x_bar + A2 * MR_bar
-        LCL = x_bar - A2 * MR_bar
         """
         base = np.zeros((N_CALIB, N_PARAMS))
         for t in range(1, N_CALIB):
@@ -49,12 +36,11 @@ class Plant:
         self.x_bar = base.mean(axis=0)
         self.UCL = self.x_bar + A2 * mr_bar
         self.LCL = self.x_bar - A2 * mr_bar
-        self.S = self.UCL - self.LCL  # диапазон нормализации
+        self.S = self.UCL - self.LCL
 
     def _compute_weights(self):
         """
         Расчёт весовых коэффициентов по формуле (11).
-        Внутри каждой группы веса приняты равными (п. 3.1.2).
         """
         from config import W_OPS, N_GRP
 
@@ -66,24 +52,15 @@ class Plant:
         assert np.isclose(self.w.sum(), 1.0), f"Сумма весов {self.w.sum()} != 1.0"
 
     def normalize(self, x_raw):
-        """
-        Нормализация по формуле (3).
-        x* = (x - LCL) / (UCL - LCL)
-        """
+        """Нормализация по формуле (3)."""
         return (x_raw - self.LCL) / self.S
 
     def compute_super_criterion(self, x_norm):
-        """
-        Критериальная свёртка по формуле (4).
-        K = sum(w_i * x_i*)
-        """
+        """Критериальная свёртка по формуле (4)."""
         return float(self.w @ x_norm)
 
     def compute_error(self, x_raw):
-        """
-        Расчёт рассогласования по формуле (1).
-        eps = g - K
-        """
+        """Расчёт рассогласования по формуле (1)."""
         x_norm = self.normalize(x_raw)
         K = self.compute_super_criterion(x_norm)
         eps = self.G - K
@@ -92,10 +69,10 @@ class Plant:
     def evolve(self, L_prev, rate, u, noise):
         """
         Эволюция состояния объекта на один такт.
-        ИСПРАВЛЕНО: состояние возвращается к центру калибровки x_bar, а не к нулю.
+        Состояние возвращается к центру калибровки x_bar.
         """
         return self.x_bar + A_CUR * (L_prev - self.x_bar) + rate - self.C_RAW * u + noise
 
 
-# Глобальный экземпляр для использования в других модулях
+# Глобальный экземпляр
 plant = Plant(seed=42)

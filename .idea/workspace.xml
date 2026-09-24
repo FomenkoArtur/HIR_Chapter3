@@ -4,22 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3531002b-cd61-43ec-bd3f-d7fd70996ad7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/NIR_Chapter3.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/experiment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/metrics.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/plant.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scenarios.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/trainer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/visualization.py" afterDir="false" />
+    <list default="true" id="3531002b-cd61-43ec-bd3f-d7fd70996ad7" name="Changes" comment="Chapter3">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/experiment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/metrics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plant.py" beforeDir="false" afterPath="$PROJECT_DIR$/plant.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scenarios.py" beforeDir="false" afterPath="$PROJECT_DIR$/scenarios.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/visualization.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualization.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,31 +29,49 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;FomenkoArtur&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/FomenkoArtur/HIR_Chapter3.git&quot;,
+    &quot;accountId&quot;: &quot;604d39b8-3d0d-4611-9e88-24fd3b0f036b&quot;
+  }
+}</component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0" />
-      <entry key="M2" value="1.0" />
-      <entry key="M5" value="1.0" />
-      <entry key="M10" value="1.0" />
-      <entry key="M15" value="1.0" />
-      <entry key="M30" value="1.0" />
-      <entry key="H1" value="1.0" />
-      <entry key="H2" value="1.0" />
-      <entry key="H4" value="1.0" />
-      <entry key="D1" value="1.0" />
-      <entry key="W1" value="1.0" />
+      <entry key="MS100" value="1.000000727777104" />
+      <entry key="MS500" value="1.0592106294124544" />
+      <entry key="S2" value="1.4937183748666516" />
+      <entry key="S5" value="2.0080621493541386" />
+      <entry key="S10" value="4.1722673715214675" />
+      <entry key="S30" value="12.259379662793604" />
+      <entry key="S60" value="17.021814043932675" />
+      <entry key="M2" value="20.177844183089892" />
+      <entry key="M5" value="22.400588856706957" />
+      <entry key="M10" value="23.309729566116157" />
+      <entry key="M15" value="23.70878839629189" />
+      <entry key="M30" value="24.233368753391705" />
+      <entry key="H1" value="24.575705928510832" />
+      <entry key="H2" value="24.775843419982277" />
+      <entry key="H4" value="24.884665038117166" />
+      <entry key="D1" value="24.980301829458753" />
+      <entry key="W1" value="24.997174009006574" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -80,29 +93,29 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="2.551894292423459E-6" />
-      <entry key="MS500" value="0.07609787616643662" />
-      <entry key="S2" value="0.5252222720053766" />
-      <entry key="S5" value="0.7729248202063723" />
-      <entry key="S10" value="0.8791614301175709" />
-      <entry key="S30" value="0.9579794852518522" />
-      <entry key="S60" value="0.978764264392531" />
-      <entry key="M2" value="0.9893251560495826" />
-      <entry key="M5" value="0.9957163097491931" />
-      <entry key="M10" value="0.9978558561982753" />
-      <entry key="M15" value="0.9985700594944957" />
-      <entry key="M30" value="0.9992847739731131" />
-      <entry key="H1" value="0.9996423230201456" />
-      <entry key="H2" value="0.9998211455156095" />
-      <entry key="H4" value="0.9999105687588313" />
-      <entry key="D1" value="0.9999850942376952" />
-      <entry key="W1" value="0.9999978705917819" />
+      <entry key="MS100" value="0.9460583304887414" />
+      <entry key="MS500" value="1.047447384995394" />
+      <entry key="S2" value="1.4894124429431457" />
+      <entry key="S5" value="2.005715778021608" />
+      <entry key="S10" value="4.169634528608172" />
+      <entry key="S30" value="12.256496524783483" />
+      <entry key="S60" value="17.01975582009737" />
+      <entry key="M2" value="20.17660720769581" />
+      <entry key="M5" value="22.39995899599201" />
+      <entry key="M10" value="23.30915535170603" />
+      <entry key="M15" value="23.70822031088304" />
+      <entry key="M30" value="24.23290471326964" />
+      <entry key="H1" value="24.575400724691097" />
+      <entry key="H2" value="24.7756673952966" />
+      <entry key="H4" value="24.88457039395442" />
+      <entry key="D1" value="24.980285061087862" />
+      <entry key="W1" value="24.997171588164566" />
     </decayedShown>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8,
-  "fromUser": false
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3JlLVx1EAKrqqEguBPfMCeAw6ir" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -114,7 +127,9 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.config.executor": "Run",
     "Python.main.executor": "Run",
+    "Python.visualization.executor": "Run",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -147,9 +162,22 @@
       <option name="presentableId" value="Default" />
       <updated>1790230735528</updated>
     </task>
+    <task id="LOCAL-00001" summary="Chapter3">
+      <option name="closed" value="true" />
+      <created>1790236021495</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1790236021495</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Chapter3" />
+    <option name="LAST_COMMIT_MESSAGE" value="Chapter3" />
   </component>
 </project>

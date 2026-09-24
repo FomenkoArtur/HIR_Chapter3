@@ -21,8 +21,6 @@ def run_experiment_episode(scenario, mode, seed=None, model=None):
         np.random.seed(seed)
 
     rate, jump = get_disturbance_profile(scenario, T_START, scale=1.0)
-
-    # Начальное состояние
     L = plant.x_bar.copy()
 
     K_history = []
@@ -33,29 +31,22 @@ def run_experiment_episode(scenario, mode, seed=None, model=None):
     u = 0.0
 
     for t in range(T_TOTAL):
-        # Внесение скачка
-        if t == T_START and scenario != 'S0':
+        if t == T_START and scenario != 'S4':
             L = L + jump
 
-        # Эволюция состояния
         if t > 0:
-            # ИСПРАВЛЕНО: использование калиброванного уровня шума SIG_CUR
             noise = np.random.normal(0, SIG_CUR, N_PARAMS)
             L = plant.evolve(L, rate[t], u, noise)
 
-        # Расчёт рассогласования
         eps, K = plant.compute_error(L)
 
-        # Скользящее окно
         buf_e.append(eps)
-        if len(buf_e) > 10:  # WINDOW = 10
+        if len(buf_e) > 10:
             buf_e.pop(0)
 
-        # Формирование управления
         if mode == 'cnn' and len(buf_e) == 10 and model is not None:
             model.eval()
             with torch.no_grad():
-                # ИСПРАВЛЕНО: подаём окно eps напрямую, без переворота знака
                 xt = torch.tensor([buf_e], dtype=torch.float32).view(1, 1, 10)
                 u = float(model(xt).item())
         else:
@@ -76,21 +67,17 @@ def run_full_experiment(model):
 
     results = []
 
-    # Эксперименты для S1, S2, S3
     for scenario in ['S1', 'S2', 'S3']:
         ts_list = []
         iae_no_ctrl_list = []
         iae_ctrl_list = []
 
         for rep in range(N_REAL):
-            # ИСПРАВЛЕНО: детерминированный расчёт сида для 100% воспроизводимости результатов
             seed = SEED_EXPERIMENT_START + 1000 * {'S1': 1, 'S2': 2, 'S3': 3}[scenario] + rep
 
-            # Без регулятора
             _, eps_no_ctrl, _ = run_experiment_episode(scenario, 'none', seed=seed)
             _, iae_no_ctrl, _ = compute_metrics(eps_no_ctrl, np.zeros(T_TOTAL), T_START)
 
-            # С регулятором
             _, eps_ctrl, u_ctrl = run_experiment_episode(scenario, 'cnn', seed=seed, model=model)
             ts_ctrl, iae_ctrl, _ = compute_metrics(eps_ctrl, u_ctrl, T_START)
 
@@ -98,7 +85,6 @@ def run_full_experiment(model):
             iae_no_ctrl_list.append(iae_no_ctrl)
             iae_ctrl_list.append(iae_ctrl)
 
-        # Средние значения
         mean_ts = round(np.mean(ts_list))
         mean_iae_no = round(np.mean(iae_no_ctrl_list), 1)
         mean_iae_ctrl = round(np.mean(iae_ctrl_list), 1)
@@ -107,24 +93,22 @@ def run_full_experiment(model):
         description = get_scenario_description(scenario)
         results.append([scenario, description, mean_ts, mean_iae_no, mean_iae_ctrl, reduction])
 
-    # Оценка ложных срабатываний в S0
+    # Оценка ложных срабатываний в S4
     false_alarm_rates = []
     for rep in range(N_REAL):
         seed = SEED_FALSE_ALARM_START + rep
-        _, eps_s0, u_s0 = run_experiment_episode('S0', 'cnn', seed=seed, model=model)
-        _, _, idle_rate = compute_metrics(eps_s0, u_s0, T_START)
+        _, eps_s4, u_s4 = run_experiment_episode('S4', 'cnn', seed=seed, model=model)
+        _, _, idle_rate = compute_metrics(eps_s4, u_s4, T_START)
         false_alarm_rates.append(idle_rate)
 
     mean_false_alarm = 100 * np.mean(false_alarm_rates)
 
-    # Формирование DataFrame
     df = pd.DataFrame(
         results,
         columns=['Сценарий', 'Особая причина изменчивости', 'Ts, тактов (с регулятором)',
                  'IAE без регулятора', 'IAE с регулятором', 'Снижение IAE, %']
     )
 
-    # Добавление строки со средними значениями
     means = df.iloc[:, 2:].mean().round(1)
     df.loc[len(df)] = ['Среднее', '-', means.iloc[0], means.iloc[1], means.iloc[2], int(means.iloc[3])]
 
