@@ -5,7 +5,7 @@
 
 import numpy as np
 from config import (N_PARAMS, A_BASE, SIG_BASE, N_CALIB, A2, D4, D3,
-                    A_CUR, SIG_CUR, C_RAW_FACTOR, G)
+                    A_CUR, SIG_CUR, C_RAW_FACTOR, G, ZONES, N_ZONES)
 
 
 class Plant:
@@ -20,6 +20,7 @@ class Plant:
 
         self._calibrate_control_charts()
         self._compute_weights()
+        self._build_zones()
 
         self.C_RAW = C_RAW_FACTOR * self.S
         self.G = G
@@ -51,6 +52,21 @@ class Plant:
 
         assert np.isclose(self.w.sum(), 1.0), f"Сумма весов {self.w.sum()} != 1.0"
 
+    def _build_zones(self):
+        """
+        Матрицы адресации воздействия: B - действие зоны на показатели,
+        V - внутризонные веса частных критериев.
+        """
+        self.B = np.zeros((N_PARAMS, N_ZONES))
+        self.V = np.zeros((N_ZONES, N_PARAMS))
+        for j, idx in enumerate(ZONES):
+            self.B[idx, j] = 1.0
+            self.V[j, idx] = self.w[idx] / self.w[idx].sum()
+
+    def zone_criteria(self, x_norm):
+        """Зональные суперкритерии K_j."""
+        return self.V @ x_norm
+
     def normalize(self, x_raw):
         """Нормализация по формуле (3)."""
         return (x_raw - self.LCL) / self.S
@@ -70,8 +86,10 @@ class Plant:
         """
         Эволюция состояния объекта на один такт.
         Состояние возвращается к центру калибровки x_bar.
+        Воздействие u (вектор по зонам) адресуется только показателям своей зоны.
         """
-        return self.x_bar + A_CUR * (L_prev - self.x_bar) + rate - self.C_RAW * u + noise
+        return (self.x_bar + A_CUR * (L_prev - self.x_bar) + rate
+                - self.C_RAW * (self.B @ u) + noise)
 
 
 # Глобальный экземпляр

@@ -9,79 +9,55 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from copy import deepcopy
 
-from config import (WINDOW, T_TOTAL, KP, KD, KI, BATCH_SIZE, MAX_EPOCHS,
-                    PATIENCE, VAL_SPLIT, LR, SEED_TEACHER_START, SIG_CUR, N_PARAMS)
-from plant import plant
-from scenarios import get_disturbance_profile
+from config import (WINDOW, T_TOTAL, BATCH_SIZE, MAX_EPOCHS, PATIENCE, VAL_SPLIT,
+                    LR, SEED_TEACHER_START, N_PARAMS, SCENARIOS)
+from episode import PIDPolicy, build_features, run_episode
+from scenarios import custom_profile, get_disturbance_profile
 from model import CNNController
 
 
-def run_episode_with_teacher(scenario, seed=None, t0=20, scale=1.0):
+def training_profiles():
     """
-    Прогон эпизода с ПИД-учителем для генерации обучающих данных.
+    Профили возмущений обучающей выборки: тренды и скачки обоих знаков
+    на каждый из показателей, плюс прогоны без особой причины.
     """
-    if seed is not None:
-        np.random.seed(seed)
+    trend = SCENARIOS['S1']['rate_value']
+    jump = abs(SCENARIOS['S2']['jump_value'])
 
-    rate, jump = get_disturbance_profile(scenario, t0, scale)
-    L = plant.x_bar.copy()
-
-    errors = []
-    controls = []
-    buf_e = []
-    e_prev = 0.0
-    u = 0.0
-
-    for t in range(T_TOTAL):
-        if t == t0 and scenario != 'S4':
-            L = L + jump
-
-        if t > 0:
-            noise = np.random.normal(0, SIG_CUR, N_PARAMS)
-            L = plant.evolve(L, rate[t], u, noise)
-
-        eps, K = plant.compute_error(L)
-        e = K - plant.G
-
-        buf_e.append(eps)
-        if len(buf_e) > WINDOW:
-            buf_e.pop(0)
-
-        u = float(np.clip(KP*e + KD*(e - e_prev) - KI*sum(buf_e), -1, 1))
-        e_prev = e
-
-        errors.append(eps)
-        controls.append(u)
-
-    return errors, controls
+    profiles = [('S4', None)] * 4
+    for param in range(N_PARAMS):
+        for kind, value in (('trend', trend), ('trend', -trend), ('jump', jump), ('jump', -jump)):
+            profiles.append((kind, (param, kind, value)))
+    return profiles
 
 
 def generate_training_data():
     """
-    Генерация обучающей выборки пар "окно eps - целевое u".
+    Генерация обучающей выборки пар "окно признаков - целевое воздействие по зонам".
     """
     print("Формирование выборки (учитель на том же объекте)...")
 
     Xs, Ys = [], []
-    ep = 0
 
-    # Прогоны для всех сценариев (включая S4)
-    for scenario in ['S4', 'S1', 'S2', 'S3']:
-        for rep in range(3):
-            ep += 1
-            errors, controls = run_episode_with_teacher(
-                scenario,
-                seed=SEED_TEACHER_START + ep,
-                t0=np.random.randint(15, 30),
-                scale=np.random.uniform(0.7, 1.3)
-            )
+    for ep, (name, spec) in enumerate(training_profiles(), start=1):
+        t0 = np.random.randint(15, 30)
+        scale = np.random.uniform(0.7, 1.3)
 
-            for t in range(WINDOW, T_TOTAL):
-                Xs.append(errors[t-WINDOW:t])
-                Ys.append(controls[t])
+        if spec is None:
+            profile = get_disturbance_profile('S4', t0, scale)
+        else:
+            param, kind, value = spec
+            profile = custom_profile(param, kind, value * scale, t0)
 
-    X = torch.tensor(np.array(Xs), dtype=torch.float32).unsqueeze(1)
-    Y = torch.tensor(np.array(Ys), dtype=torch.float32).unsqueeze(1)
+        episode = run_episode(name, PIDPolicy(), seed=SEED_TEACHER_START + ep, t0=t0, profile=profile)
+
+        for t in range(WINDOW - 1, T_TOTAL):
+            window = slice(t - WINDOW + 1, t + 1)
+            Xs.append(build_features(episode.eps[window], episode.N[window]))
+            Ys.append(episode.u[t])
+
+    X = torch.tensor(np.array(Xs), dtype=torch.float32)
+    Y = torch.tensor(np.array(Ys), dtype=torch.float32)
 
     n_total = len(X)
     n_train = int((1 - VAL_SPLIT) * n_total)

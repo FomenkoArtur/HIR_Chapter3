@@ -3,25 +3,27 @@
 """
 
 import torch.nn as nn
-from config import WINDOW
+from config import N_FEATURES, N_ZONES, WINDOW
 
 
 class CNNController(nn.Module):
     """
-    Свёрточная нейронная сеть для регулирования технологического процесса.
+    Свёрточная нейронная сеть для адресного регулирования технологического процесса.
+    Вход: N_FEATURES каналов временного ряда длиной WINDOW.
+    Выход: по одному управляющему воздействию на каждую зону.
     """
 
-    def __init__(self, window_size=WINDOW):
+    def __init__(self, window_size=WINDOW, in_channels=N_FEATURES, n_outputs=N_ZONES):
         super().__init__()
 
-        self.c1 = nn.Conv1d(1, 16, kernel_size=5, padding=2)
+        self.c1 = nn.Conv1d(in_channels, 16, kernel_size=5, padding=2)
         self.p1 = nn.MaxPool1d(2)
 
         self.c2 = nn.Conv1d(16, 32, kernel_size=3, padding=1)
         self.p2 = nn.MaxPool1d(2)
 
         self.fc1 = nn.Linear(32 * (window_size // 4), 32)
-        self.fc2 = nn.Linear(32, 1)
+        self.fc2 = nn.Linear(32, n_outputs)
 
         self.relu = nn.ReLU()
         self.tanh = nn.Tanh()

@@ -10,6 +10,17 @@ N_PARAMS = 8
 W_OPS = np.array([0.5, 0.3, 0.2])  # веса групп: токарная, фрезерная, закалка
 N_GRP = np.array([3, 3, 2])        # число показателей в каждой группе
 
+# ========== ЗОНЫ УПРАВЛЕНИЯ (адресное воздействие, п. 2.2.2) ==========
+ZONE_LAYOUTS = {
+    'single': [list(range(N_PARAMS))],
+    'operation': [[0, 1, 2], [3, 4, 5], [6, 7]],
+    'parameter': [[i] for i in range(N_PARAMS)],
+}
+CONTROL_LAYOUT = 'parameter'
+ZONES = ZONE_LAYOUTS[CONTROL_LAYOUT]
+N_ZONES = len(ZONES)
+N_FEATURES = 1 + 2 * N_PARAMS
+
 # ========== ВРЕМЕННЫЕ ПАРАМЕТРЫ (п. 3.1.2, п. 3.3.1) ==========
 WINDOW = 10           # длина окна рассогласования L
 DELTA = 0.05          # порог критерия (15): 5% диапазона K

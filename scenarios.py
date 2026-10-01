@@ -29,6 +29,22 @@ def get_disturbance_profile(scenario, t0=20, scale=1.0):
     return rate * plant.S, jump * plant.S
 
 
+def custom_profile(param, kind, value, t0=20):
+    """
+    Профиль возмущения на произвольный показатель (для обучающей выборки).
+    kind: 'trend' - линейный тренд, 'jump' - скачок.
+    """
+    rate = np.zeros((T_TOTAL, N_PARAMS))
+    jump = np.zeros(N_PARAMS)
+
+    if kind == 'trend':
+        rate[t0:, param] = value
+    else:
+        jump[param] = value
+
+    return rate * plant.S, jump * plant.S
+
+
 def get_scenario_description(scenario):
     """Получение текстового описания сценария."""
     if scenario == 'S4':
