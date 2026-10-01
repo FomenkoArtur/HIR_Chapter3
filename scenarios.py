@@ -3,11 +3,11 @@
 """
 
 import numpy as np
-from config import N_PARAMS, T_TOTAL, SCENARIOS
+from config import N_PARAMS, T_TOTAL, T_START, SCENARIOS
 from plant import plant
 
 
-def get_disturbance_profile(scenario, t0=20, scale=1.0):
+def get_disturbance_profile(scenario, t0=T_START, scale=1.0):
     """
     Формирование профиля возмущений для заданного сценария.
     """
@@ -29,7 +29,7 @@ def get_disturbance_profile(scenario, t0=20, scale=1.0):
     return rate * plant.S, jump * plant.S
 
 
-def custom_profile(param, kind, value, t0=20):
+def custom_profile(param, kind, value, t0=T_START):
     """
     Профиль возмущения на произвольный показатель (для обучающей выборки).
     kind: 'trend' - линейный тренд, 'jump' - скачок.

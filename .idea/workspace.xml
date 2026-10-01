@@ -7,11 +7,18 @@
     <list default="true" id="3531002b-cd61-43ec-bd3f-d7fd70996ad7" name="Changes" comment="Chapter3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controller_weights.pt" beforeDir="false" afterPath="$PROJECT_DIR$/controller_weights.pt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/episode.py" beforeDir="false" afterPath="$PROJECT_DIR$/episode.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/experiment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/labels.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/labels.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/main_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/plots.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/plots.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/simulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/simulation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui/workers.py" beforeDir="false" afterPath="$PROJECT_DIR$/gui/workers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/metrics.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/plant.py" beforeDir="false" afterPath="$PROJECT_DIR$/plant.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_gui.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scenarios.py" beforeDir="false" afterPath="$PROJECT_DIR$/scenarios.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainer.py" afterDir="false" />
     </list>
@@ -54,61 +61,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.000000727777104" />
-      <entry key="MS500" value="1.0592106294124544" />
-      <entry key="S2" value="1.4937183748666516" />
-      <entry key="S5" value="2.0080621493541386" />
-      <entry key="S10" value="4.1722673715214675" />
-      <entry key="S30" value="12.259379662793604" />
-      <entry key="S60" value="17.021814043932675" />
-      <entry key="M2" value="20.177844183089892" />
-      <entry key="M5" value="22.400588856706957" />
-      <entry key="M10" value="23.309729566116157" />
-      <entry key="M15" value="23.70878839629189" />
-      <entry key="M30" value="24.233368753391705" />
-      <entry key="H1" value="24.575705928510832" />
-      <entry key="H2" value="24.775843419982277" />
-      <entry key="H4" value="24.884665038117166" />
-      <entry key="D1" value="24.980301829458753" />
-      <entry key="W1" value="24.997174009006574" />
+      <entry key="MS100" value="3.269980423759721E-10" />
+      <entry key="MS500" value="0.013424289140504577" />
+      <entry key="S2" value="0.5011825775003145" />
+      <entry key="S5" value="1.297382533530666" />
+      <entry key="S10" value="3.3536487949656344" />
+      <entry key="S30" value="11.398568437941753" />
+      <entry key="S60" value="16.413331830854922" />
+      <entry key="M2" value="19.813911462739277" />
+      <entry key="M5" value="22.238096815429046" />
+      <entry key="M10" value="23.225032252858714" />
+      <entry key="M15" value="23.65132201472568" />
+      <entry key="M30" value="24.20398199436044" />
+      <entry key="H1" value="24.560800460071064" />
+      <entry key="H2" value="24.76832885324302" />
+      <entry key="H4" value="24.88089096563903" />
+      <entry key="D1" value="24.9796703600532" />
+      <entry key="W1" value="24.99708373718399" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="0.0" />
-      <entry key="S30" value="0.0" />
-      <entry key="S60" value="0.0" />
-      <entry key="M2" value="0.0" />
-      <entry key="M5" value="0.0" />
-      <entry key="M10" value="0.0" />
-      <entry key="M15" value="0.0" />
-      <entry key="M30" value="0.0" />
-      <entry key="H1" value="0.0" />
-      <entry key="H2" value="0.0" />
-      <entry key="H4" value="0.0" />
-      <entry key="D1" value="0.0" />
-      <entry key="W1" value="0.0" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0" />
+      <entry key="M2" value="1.0" />
+      <entry key="M5" value="1.0" />
+      <entry key="M10" value="1.0" />
+      <entry key="M15" value="1.0" />
+      <entry key="M30" value="1.0" />
+      <entry key="H1" value="1.0" />
+      <entry key="H2" value="1.0" />
+      <entry key="H4" value="1.0" />
+      <entry key="D1" value="1.0" />
+      <entry key="W1" value="1.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9460583304887414" />
-      <entry key="MS500" value="1.047447384995394" />
-      <entry key="S2" value="1.4894124429431457" />
-      <entry key="S5" value="2.005715778021608" />
-      <entry key="S10" value="4.169634528608172" />
-      <entry key="S30" value="12.256496524783483" />
-      <entry key="S60" value="17.01975582009737" />
-      <entry key="M2" value="20.17660720769581" />
-      <entry key="M5" value="22.39995899599201" />
-      <entry key="M10" value="23.30915535170603" />
-      <entry key="M15" value="23.70822031088304" />
-      <entry key="M30" value="24.23290471326964" />
-      <entry key="H1" value="24.575400724691097" />
-      <entry key="H2" value="24.7756673952966" />
-      <entry key="H4" value="24.88457039395442" />
-      <entry key="D1" value="24.980285061087862" />
-      <entry key="W1" value="24.997171588164566" />
+      <entry key="MS100" value="6.363568012933611E-10" />
+      <entry key="MS500" value="0.02594906521226512" />
+      <entry key="S2" value="0.8352646426586146" />
+      <entry key="S5" value="1.941953416340726" />
+      <entry key="S10" value="4.155327802244211" />
+      <entry key="S30" value="12.325671203713133" />
+      <entry key="S60" value="17.375599981463832" />
+      <entry key="M2" value="20.794660543871736" />
+      <entry key="M5" value="23.230217605379426" />
+      <entry key="M10" value="24.22082656436393" />
+      <entry key="M15" value="24.64833146323407" />
+      <entry key="M30" value="25.202305860175226" />
+      <entry key="H1" value="25.559888929040333" />
+      <entry key="H2" value="25.767849579789477" />
+      <entry key="H4" value="25.880644673251222" />
+      <entry key="D1" value="25.979628313412206" />
+      <entry key="W1" value="25.9970777050696" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -127,9 +134,13 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python.config.executor": "Run",
+    "Python.diagnose.executor": "Run",
+    "Python.diagnose2.executor": "Run",
     "Python.main.executor": "Run",
     "Python.main_window.executor": "Run",
+    "Python.model.executor": "Run",
     "Python.run_gui.executor": "Run",
+    "Python.show_model.executor": "Run",
     "Python.visualization.executor": "Run",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -137,7 +148,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "bd2c9685",
     "junie.onboarding.icon.badge.shown": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -179,7 +190,23 @@
       <option name="project" value="LOCAL" />
       <updated>1790238584868</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Chapter3">
+      <option name="closed" value="true" />
+      <created>1790840807349</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1790840807349</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Chapter3">
+      <option name="closed" value="true" />
+      <created>1790840816098</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1790840816098</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

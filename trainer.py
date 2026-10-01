@@ -40,7 +40,7 @@ def generate_training_data():
     Xs, Ys = [], []
 
     for ep, (name, spec) in enumerate(training_profiles(), start=1):
-        t0 = np.random.randint(15, 30)
+        t0 = np.random.randint(WINDOW + 5, WINDOW + 20)
         scale = np.random.uniform(0.7, 1.3)
 
         if spec is None:

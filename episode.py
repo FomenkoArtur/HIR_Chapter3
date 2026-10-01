@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-from config import G, KD, KI, KP, N_PARAMS, N_ZONES, SIG_CUR, T_START, T_TOTAL, WINDOW
+from config import G, KD, KI, KP, N_PARAMS, N_ZONES, PID_WINDOW, SIG_CUR, T_START, T_TOTAL, WINDOW
 from plant import plant
 from scenarios import get_disturbance_profile
 
@@ -47,7 +47,7 @@ class PIDPolicy:
     def act(self, eps, x_norm):
         e = plant.zone_criteria(x_norm) - G
         self.window.append(e)
-        if len(self.window) > WINDOW:
+        if len(self.window) > PID_WINDOW:
             self.window.pop(0)
         u = KP * e + KD * (e - self.e_prev) + KI * np.sum(self.window, axis=0)
         self.e_prev = e
