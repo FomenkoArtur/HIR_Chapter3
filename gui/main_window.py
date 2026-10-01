@@ -17,6 +17,18 @@ from gui.workers import ExperimentWorker, TrainWorker
 from model import CNNController
 from plant import plant
 
+
+# === ОПЦИОНАЛЬНЫЙ МОДУЛЬ ИНДИКАТОРА СОСТОЯНИЯ ===
+try:
+    from gui.rpms_indicator import attach_rpms_indicator
+except ImportError:
+    attach_rpms_indicator = None
+
+
+# =================================================
+
+
+
 WEIGHTS_PATH = Path(__file__).resolve().parent.parent / "controller_weights.pt"
 SCENARIO_ORDER = ['S1', 'S2', 'S3', 'S4']
 MODE_LABELS = {'none': "Без регулятора", 'cnn': "С регулятором (CNN)"}
@@ -137,6 +149,15 @@ class MainWindow(QMainWindow):
         left.addWidget(params_box)
         left.addWidget(playback_box)
         left.addWidget(metrics_box)
+
+        # === ВСТРАИВАНИЕ ИНДИКАТОРА (если модуль включен в настройках) ===
+        if attach_rpms_indicator is not None:
+            self.rpms_indicator = attach_rpms_indicator(self, left)
+
+        left.addWidget(self.save_plot_button)
+        left.addStretch()
+        # =================================================================
+
         left.addWidget(self.save_plot_button)
         left.addStretch()
         left_widget = QWidget()
