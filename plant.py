@@ -22,18 +22,25 @@ class RobustSigmoidNormalizer:
     """
     Робастная сигмоидная нормализация по взвешенному скользящему окну.
 
-    На каждом такте медиана m_i(t) и масштаб s_i(t) оцениваются по последним
-    L_N значениям критерия, причём наблюдению возраста k присвоен вес
+    На каждом такте медиана m_i(t) и масштаб s_i(t) оцениваются по наблюдениям
+    последних L_N тактов, причём наблюдению возраста k присвоен вес
     gamma^k / sum(gamma^j) (формула (9)). Квантили определяются по взвешенной
     эмпирической функции распределения (формула (10)), масштаб - по формуле (11),
     нормализованное значение - по формуле (12).
 
-    Объект хранит только окно из L_N последних значений каждого критерия,
-    поэтому повторная обработка накопленной выборки не требуется.
+    Граница карты Шухарта фиксирована по результатам калибровки: значение x_i(t),
+    вышедшее за [LCL_i; UCL_i], в окно i-го критерия не попадает. Пока критерий
+    находится вне границ, оценки m_i, s_i не изменяются, поэтому устойчивое
+    смещение процесса не принимается за новую норму.
+
+    Объект хранит только окно из L_N последних тактов, поэтому повторная
+    обработка накопленной выборки не требуется.
     """
 
-    def __init__(self, s_min, window=N_WINDOW, gamma=GAMMA):
+    def __init__(self, s_min, lcl, ucl, window=N_WINDOW, gamma=GAMMA):
         self.s_min = np.asarray(s_min, dtype=float)
+        self.lcl = np.asarray(lcl, dtype=float)
+        self.ucl = np.asarray(ucl, dtype=float)
         self.window = int(window)
         self.gamma = float(gamma)
         self.reset()
@@ -41,11 +48,8 @@ class RobustSigmoidNormalizer:
     def reset(self):
         """Очистка окна (начало нового эпизода)."""
         self._buf = []
-
-    def _weights(self, m):
-        """Формула (9): веса наблюдений возраста k = 0, ..., m - 1 (k = 0 - текущий такт)."""
-        w = self.gamma ** np.arange(m)
-        return w / w.sum()
+        self.m = None
+        self.s = None
 
     @staticmethod
     def _weighted_quantile(sorted_vals, cum_w, p):
@@ -55,11 +59,18 @@ class RobustSigmoidNormalizer:
 
     def estimates(self):
         """Текущие оценки медианы m_i(t) и масштаба s_i(t) по окну."""
-        data = np.array(self._buf[::-1])                 # строка k - значение возраста k
-        w = self._weights(len(data))
-        order = np.argsort(data, axis=0, kind='stable')
-        sorted_vals = np.take_along_axis(data, order, axis=0)
-        cum_w = np.cumsum(w[order], axis=0)
+        data = np.array(self._buf[::-1])                 # строка k - значение возраста k тактов
+        valid = ~np.isnan(data)
+        ages = np.arange(len(data))[:, None]
+        w = np.where(valid, self.gamma ** ages, 0.0)     # формула (9) для принятых наблюдений
+        total = w.sum(axis=0)
+        empty = total <= 0
+        w = w / np.where(empty, 1.0, total)
+
+        values = np.where(valid, data, 0.0)
+        order = np.argsort(values, axis=0, kind='stable')
+        sorted_vals = np.take_along_axis(values, order, axis=0)
+        cum_w = np.cumsum(np.take_along_axis(w, order, axis=0), axis=0)
 
         q25 = self._weighted_quantile(sorted_vals, cum_w, 0.25)
         q50 = self._weighted_quantile(sorted_vals, cum_w, 0.50)
@@ -67,6 +78,9 @@ class RobustSigmoidNormalizer:
 
         m = q50
         s = np.maximum((q75 - q25) / IQR_TO_SIGMA, self.s_min)
+        if empty.any():
+            m = np.where(empty, self.m, m)
+            s = np.where(empty, self.s, s)
         return m, s
 
     def update(self, x):
@@ -74,13 +88,20 @@ class RobustSigmoidNormalizer:
         Принимает вектор текущих значений критериев x(t), обновляет окно
         и возвращает вектор N(t) по формуле (12).
         """
-        self._buf.append(np.asarray(x, dtype=float).copy())
+        x = np.asarray(x, dtype=float).copy()
+        admitted = (x >= self.lcl) & (x <= self.ucl)
+        if self._buf:
+            admitted |= np.isnan(np.array(self._buf)).all(axis=0)
+        else:
+            admitted[:] = True
+
+        self._buf.append(np.where(admitted, x, np.nan))
         if len(self._buf) > self.window:
             self._buf.pop(0)
 
         m, s = self.estimates()
         self.m, self.s = m, s                            # оценки текущего такта (для bounds)
-        z = (np.asarray(x, dtype=float) - m) / s
+        z = (x - m) / s
         # 1 / (1 + exp(-z)) в численно устойчивой форме
         return 0.5 * (1.0 + np.tanh(0.5 * z))
 
@@ -159,7 +180,7 @@ class Plant:
 
     def make_normalizer(self):
         """Новый нормализатор (чистое окно) для одного эпизода."""
-        return RobustSigmoidNormalizer(self.S_MIN)
+        return RobustSigmoidNormalizer(self.S_MIN, self.LCL, self.UCL)
 
     def zone_criteria(self, x_norm):
         """Зональные суперкритерии K_q."""
