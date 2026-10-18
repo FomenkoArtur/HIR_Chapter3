@@ -2,7 +2,6 @@ from copy import deepcopy
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from PySide6.QtCore import QThread, Signal
 from torch.utils.data import DataLoader, TensorDataset
@@ -10,7 +9,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from config import BATCH_SIZE, LR, MAX_EPOCHS, PATIENCE, SEED
 from experiment import run_full_experiment
 from model import CNNController
-from trainer import generate_training_data
+from trainer import generate_training_data, weighted_mse
 
 
 class TrainWorker(QThread):
@@ -42,7 +41,9 @@ class TrainWorker(QThread):
             )
             model = CNNController()
             optimizer = optim.Adam(model.parameters(), lr=LR) if LR else optim.Adam(model.parameters())
-            criterion = nn.MSELoss()
+            scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer, mode='min', factor=0.5, patience=15
+            )
 
             best_loss = float('inf')
             best_state = None
@@ -57,15 +58,17 @@ class TrainWorker(QThread):
                 total = 0.0
                 for xb, yb in loader:
                     optimizer.zero_grad()
-                    loss = criterion(model(xb), yb)
+                    loss = weighted_mse(model(xb), yb)
                     loss.backward()
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                     optimizer.step()
                     total += loss.item() * len(xb)
                 train_loss = total / len(X_train)
 
                 model.eval()
                 with torch.no_grad():
-                    val_loss = criterion(model(X_val), Y_val).item()
+                    val_loss = weighted_mse(model(X_val), Y_val).item()
+                scheduler.step(val_loss)
 
                 self.epoch_done.emit(epoch, train_loss, val_loss)
 

@@ -240,7 +240,7 @@ class MainWindow(QMainWindow):
         self.experiment_table = make_table(
             ["Сценарий", "Особая причина изменчивости", "Ts, тактов (с регулятором)",
              "IAE без регулятора", "IAE с регулятором", "Снижение IAE, %",
-             "Nᵢ вне границ без регулятора, %", "Nᵢ вне границ с регулятором, %"]
+             "Nᵢ вне [0,05; 0,95] без регулятора, %", "Nᵢ вне [0,05; 0,95] с регулятором, %"]
         )
         self.false_alarm_label = QLabel("S4: доля тактов с ложным срабатыванием регулятора: —")
         layout.addLayout(controls)
@@ -360,7 +360,7 @@ class MainWindow(QMainWindow):
 
     def _fill_metrics(self):
         rows = ["Ts, тактов", "IAE", "Доля тактов |u| > порога, %", "Макс. |ΔK| после t0",
-                "Доля тактов с Nᵢ вне [0, 1], %"]
+                "Доля тактов с Nᵢ вне [0,05; 0,95], %"]
         for row, name in enumerate(rows):
             set_cell(self.metrics_table, row, 0, name, Qt.AlignLeft)
             for column, mode in ((1, 'none'), (2, 'cnn')):

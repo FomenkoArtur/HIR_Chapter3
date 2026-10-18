@@ -1,11 +1,99 @@
 """
-Цифровой двойник технологического процесса и калибровка контрольных карт.
-Реализует формулы (3), (5), (6) из текста работы.
+Цифровой двойник технологического процесса, калибровка контрольных карт
+и робастная сигмоидная нормализация частных критериев.
+
+Соответствие тексту РПЗ:
+    (3)  x_i = z_i + beta_i             - приведение критериев к положительному виду
+    (9)  omega_k = gamma^k / sum(gamma^j) - веса наблюдений скользящего окна
+    (10) F_i(y, t), Q_p;i(t)            - взвешенная эмпирическая функция распределения и квантили
+    (11) s_i(t) = max(IQR / 1,349; s_min)
+    (12) N_i(t) = 1 / (1 + exp(-(x_i(t) - m_i(t)) / s_i(t)))
+    (13) K(t) = sum(w_i * N_i)
+    (14) границы карты X-MR, (27) иерархические веса, (34) модель объекта.
 """
 
 import numpy as np
 from config import (N_PARAMS, A_BASE, SIG_BASE, N_CALIB, A2, D4, D3,
-                    A_CUR, SIG_CUR, C_RAW_FACTOR, G, ZONES, N_ZONES)
+                    A_CUR, SIG_CUR, C_RAW_FACTOR, G, ZONES, N_ZONES,
+                    BETA, N_WINDOW, GAMMA, S_MIN_FRAC, IQR_TO_SIGMA)
+
+
+class RobustSigmoidNormalizer:
+    """
+    Робастная сигмоидная нормализация по взвешенному скользящему окну.
+
+    На каждом такте медиана m_i(t) и масштаб s_i(t) оцениваются по последним
+    L_N значениям критерия, причём наблюдению возраста k присвоен вес
+    gamma^k / sum(gamma^j) (формула (9)). Квантили определяются по взвешенной
+    эмпирической функции распределения (формула (10)), масштаб - по формуле (11),
+    нормализованное значение - по формуле (12).
+
+    Объект хранит только окно из L_N последних значений каждого критерия,
+    поэтому повторная обработка накопленной выборки не требуется.
+    """
+
+    def __init__(self, s_min, window=N_WINDOW, gamma=GAMMA):
+        self.s_min = np.asarray(s_min, dtype=float)
+        self.window = int(window)
+        self.gamma = float(gamma)
+        self.reset()
+
+    def reset(self):
+        """Очистка окна (начало нового эпизода)."""
+        self._buf = []
+
+    def _weights(self, m):
+        """Формула (9): веса наблюдений возраста k = 0, ..., m - 1 (k = 0 - текущий такт)."""
+        w = self.gamma ** np.arange(m)
+        return w / w.sum()
+
+    @staticmethod
+    def _weighted_quantile(sorted_vals, cum_w, p):
+        """Формула (10): Q_p = min{y : F(y) >= p} для каждого критерия (столбца)."""
+        idx = (cum_w >= p - 1e-12).argmax(axis=0)
+        return sorted_vals[idx, np.arange(sorted_vals.shape[1])]
+
+    def estimates(self):
+        """Текущие оценки медианы m_i(t) и масштаба s_i(t) по окну."""
+        data = np.array(self._buf[::-1])                 # строка k - значение возраста k
+        w = self._weights(len(data))
+        order = np.argsort(data, axis=0, kind='stable')
+        sorted_vals = np.take_along_axis(data, order, axis=0)
+        cum_w = np.cumsum(w[order], axis=0)
+
+        q25 = self._weighted_quantile(sorted_vals, cum_w, 0.25)
+        q50 = self._weighted_quantile(sorted_vals, cum_w, 0.50)
+        q75 = self._weighted_quantile(sorted_vals, cum_w, 0.75)
+
+        m = q50
+        s = np.maximum((q75 - q25) / IQR_TO_SIGMA, self.s_min)
+        return m, s
+
+    def update(self, x):
+        """
+        Принимает вектор текущих значений критериев x(t), обновляет окно
+        и возвращает вектор N(t) по формуле (12).
+        """
+        self._buf.append(np.asarray(x, dtype=float).copy())
+        if len(self._buf) > self.window:
+            self._buf.pop(0)
+
+        m, s = self.estimates()
+        self.m, self.s = m, s                            # оценки текущего такта (для bounds)
+        z = (np.asarray(x, dtype=float) - m) / s
+        # 1 / (1 + exp(-z)) в численно устойчивой форме
+        return 0.5 * (1.0 + np.tanh(0.5 * z))
+
+    def bounds(self, lcl, ucl):
+        """
+        Контрольные границы карты Шухарта LCL_i, UCL_i в шкале N_i на текущем такте:
+        те же оконные оценки m_i(t), s_i(t) и та же робастная сигмоида (12), что и для x_i(t).
+        Сигмоида монотонна, поэтому x_i внутри [LCL_i; UCL_i] тогда и только тогда,
+        когда N_i внутри [N_LCL_i(t); N_UCL_i(t)]. Вызывать после update().
+        """
+        def sigmoid(v):
+            return 0.5 * (1.0 + np.tanh(0.5 * (np.asarray(v, dtype=float) - self.m) / self.s))
+        return sigmoid(lcl), sigmoid(ucl)
 
 
 class Plant:
@@ -25,23 +113,29 @@ class Plant:
         self.C_RAW = C_RAW_FACTOR * self.S
         self.G = G
 
+        # Нижняя граница масштаба нормализации s_min (формула (11)):
+        # доля S_MIN_FRAC от ширины контрольного коридора H_i = UCL_i - LCL_i
+        self.S_MIN = S_MIN_FRAC * self.S
+
     def _calibrate_control_charts(self):
         """
-        Калибровка контрольных карт Шухарта по формулам (5) и (6).
+        Калибровка контрольных карт Шухарта X-MR по формуле (14).
+        Показатели приведены к положительному виду сдвигом beta (формула (3)):
+        центральная линия и границы карты смещаются на beta, размах не меняется.
         """
         base = np.zeros((N_CALIB, N_PARAMS))
         for t in range(1, N_CALIB):
             base[t] = A_BASE * base[t-1] + np.random.normal(0, SIG_BASE, N_PARAMS)
 
         mr_bar = np.abs(np.diff(base, axis=0)).mean(axis=0)
-        self.x_bar = base.mean(axis=0)
+        self.x_bar = base.mean(axis=0) + BETA
         self.UCL = self.x_bar + A2 * mr_bar
         self.LCL = self.x_bar - A2 * mr_bar
         self.S = self.UCL - self.LCL
 
     def _compute_weights(self):
         """
-        Расчёт весовых коэффициентов по формуле (11).
+        Расчёт весовых коэффициентов по иерархической схеме (27): w_i = lambda_j * v_i.
         """
         from config import W_OPS, N_GRP
 
@@ -63,28 +157,21 @@ class Plant:
             self.B[idx, j] = 1.0
             self.V[j, idx] = self.w[idx] / self.w[idx].sum()
 
+    def make_normalizer(self):
+        """Новый нормализатор (чистое окно) для одного эпизода."""
+        return RobustSigmoidNormalizer(self.S_MIN)
+
     def zone_criteria(self, x_norm):
-        """Зональные суперкритерии K_j."""
+        """Зональные суперкритерии K_q."""
         return self.V @ x_norm
 
-    def normalize(self, x_raw):
-        """Нормализация по формуле (3)."""
-        return (x_raw - self.LCL) / self.S
-
     def compute_super_criterion(self, x_norm):
-        """Критериальная свёртка по формуле (4)."""
+        """Критериальная свёртка по формуле (13)."""
         return float(self.w @ x_norm)
-
-    def compute_error(self, x_raw):
-        """Расчёт рассогласования по формуле (1)."""
-        x_norm = self.normalize(x_raw)
-        K = self.compute_super_criterion(x_norm)
-        eps = self.G - K
-        return eps, K
 
     def evolve(self, L_prev, rate, u, noise):
         """
-        Эволюция состояния объекта на один такт.
+        Эволюция состояния объекта на один такт, формула (34).
         Состояние возвращается к центру калибровки x_bar.
         Воздействие u (вектор по зонам) адресуется только показателям своей зоны.
         """

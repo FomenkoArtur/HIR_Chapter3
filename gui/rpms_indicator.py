@@ -15,10 +15,11 @@ from PySide6.QtWidgets import (
 ENABLED = True
 
 try:
-    from config import DELTA, T_TOTAL
+    from config import DELTA, T_TOTAL, Z_LIMIT
 except ImportError:
-    DELTA = 0.05
+    DELTA = 0.02
     T_TOTAL = 100
+    Z_LIMIT = 3.0
 
 # Пороги срабатывания
 YELLOW_EPS = DELTA
@@ -83,11 +84,14 @@ def classify(result):
     if len(eps_arr) == 0:
         return None
 
-    n_arr = getattr(result, 'N', np.zeros_like(eps_arr))
-    if hasattr(n_arr, 'ndim') and n_arr.ndim > 1:
-        excess = np.clip(np.maximum(n_arr - 1.0, -n_arr), 0.0, None).max(axis=1)
-    else:
-        excess = np.clip(np.maximum(n_arr - 1.0, -n_arr), 0.0, None)
+    # Нормализованное значение N лежит в (0; 1), поэтому выход за границы
+    # оценивается по аргументу сигмоиды z = (x - m) / s = ln(N / (1 - N)):
+    # excess = max(|z| / Z_LIMIT - 1; 0), то есть превышение границы 3s в долях 3s.
+    n_arr = np.clip(getattr(result, 'N', np.full_like(eps_arr, 0.5)), 1e-12, 1.0 - 1e-12)
+    z_abs = np.abs(np.log(n_arr / (1.0 - n_arr)))
+    excess = np.clip(z_abs / Z_LIMIT - 1.0, 0.0, None)
+    if excess.ndim > 1:
+        excess = excess.max(axis=1)
 
     levels = np.zeros(len(eps_arr), dtype=int)
     level = OK

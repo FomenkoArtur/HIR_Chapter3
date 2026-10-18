@@ -4,7 +4,7 @@ import matplotlib
 from matplotlib.figure import Figure
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 
-from config import A2, D4, DELTA, G, IDLE_THRESHOLD, T_START, T_TOTAL
+from config import A2, D4, DELTA, G, IDLE_THRESHOLD, N_HIGH, N_LOW, T_START, T_TOTAL
 from gui.labels import PARAMETERS, zone_labels
 from plant import plant
 
@@ -14,10 +14,19 @@ MODE_STYLE = {
 }
 
 
+def fit_ylim(ax, values, include=(), pad_lo=0.05, pad_hi=0.05):
+    """Уменьшенные отступы для более крупного отображения данных."""
+    values = np.asarray(values, dtype=float)
+    lo = min([values.min(), *include])
+    hi = max([values.max(), *include])
+    span = (hi - lo) or 1.0
+    ax.set_ylim(lo - pad_lo * span, hi + pad_hi * span)
+
+
 class FigureWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.figure = Figure(figsize=(9, 7), constrained_layout=True)
+        self.figure = Figure(figsize=(12, 8), constrained_layout=True)
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.toolbar = NavigationToolbar2QT(self.canvas, self)
         layout = QVBoxLayout(self)
@@ -58,7 +67,7 @@ class SimulationPlot(FigureWidget):
         super().__init__(parent)
         self._blit = BlitManager(self.canvas)
         self.ax_k, self.ax_u, self.ax_n = self.figure.subplots(
-            3, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1.5, 2]}
+            3, 1, sharex=True, gridspec_kw={'height_ratios': [3, 2.5, 2.5]}
         )
         self._series = []
         self._decorate_empty()
@@ -96,34 +105,60 @@ class SimulationPlot(FigureWidget):
         self.ax_u.axhline(IDLE_THRESHOLD, color='orange', ls='--', lw=1,
                           label=f"Порог холостого хода ±{IDLE_THRESHOLD}")
         self.ax_u.axhline(-IDLE_THRESHOLD, color='orange', ls='--', lw=1)
-        self.ax_u.set_ylim(-1.05, 1.05)
+
+        u_values = results['cnn'].u if 'cnn' in results else np.zeros(1)
+
+        # --- НАСТРОЙКА ОСИ Y ДЛЯ u(t) ---
+        u_min, u_max = u_values.min(), u_values.max()
+        span_u = max(u_max - u_min, 0.5)
+        self.ax_u.set_ylim(u_min - 0.1 * span_u, u_max + 0.5 * span_u)
 
         reference = results.get('cnn', next(iter(results.values())))
+        n_values_all = []
+
         for i, (symbol, name, _) in enumerate(PARAMETERS):
             line, = self.ax_n.plot([], [], color=cmap(i), lw=1.1, label=symbol)
             self._series.append((line, t, reference.N[:, i]))
-        self.ax_n.axhline(0, color='k', alpha=0.3, lw=0.8)
-        self.ax_n.axhline(1, color='k', alpha=0.3, lw=0.8)
-        n_min, n_max = reference.N.min(), reference.N.max()
-        self.ax_n.set_ylim(min(n_min, 0) - 0.3, max(n_max, 1) + 0.1)
+            n_values_all.extend(reference.N[:, i])
 
+        self.ax_n.axhline(0.5, color='k', alpha=0.3, lw=0.8)
+        self.ax_n.axhline(N_LOW, color='k', ls='--', alpha=0.4, lw=0.8)
+        self.ax_n.axhline(N_HIGH, color='k', ls='--', alpha=0.4, lw=0.8)
+
+        # --- НАСТРОЙКА ОСИ Y ДЛЯ N_i(t) ---
+        n_values_all = np.array(n_values_all)
+        n_min, n_max = n_values_all.min(), n_values_all.max()
+
+        span_n = max(n_max - n_min, 0.15)
+        # Даем много места снизу (45% пустоты), чтобы линии не наезжали на легенду
+        self.ax_n.set_ylim(n_min - 0.45 * span_n, n_max + 0.1 * span_n)
+
+        # --- НАСТРОЙКА ОСИ Y ДЛЯ K(t) ---
         k_min, k_max = min(k_values), max(k_values)
-        self.ax_k.set_ylim(k_min - 0.02, k_max + 0.30 * (k_max - k_min))
+        span_k = max(k_max - k_min, 0.1)
+        self.ax_k.set_ylim(k_min - 0.05 * span_k, k_max + 0.45 * span_k)
+
         self.ax_k.set_xlim(0, T_TOTAL - 1)
 
         self.ax_k.set_title(
             f"{scenario}: {description}  (масштаб {scale:.2f}, seed {seed})",
-            fontsize=10,
+            fontsize=11,
         )
-        self.ax_k.set_ylabel("K(t)")
-        self.ax_u.set_ylabel("u(t)")
-        self.ax_n.set_ylabel("Nᵢ(t)")
-        self.ax_n.set_xlabel("Такт моделирования t")
+        self.ax_k.set_ylabel("K(t)", fontsize=10)
+        self.ax_u.set_ylabel("u(t)", fontsize=10)
+        self.ax_n.set_ylabel("Nᵢ(t)", fontsize=10)
+        self.ax_n.set_xlabel("Такт моделирования t", fontsize=10)
+
         for ax in (self.ax_k, self.ax_u, self.ax_n):
             ax.grid(alpha=0.3)
-        self.ax_k.legend(loc='upper right', ncol=2, fontsize=8)
-        self.ax_u.legend(loc='upper right', ncol=3, fontsize=7)
-        self.ax_n.legend(loc='lower right', ncol=8, fontsize=8)
+            ax.tick_params(labelsize=9)
+
+        # Легенды K(t) и u(t) - в правом верхнем углу
+        self.ax_k.legend(loc='upper right', ncol=2, fontsize=9, framealpha=0.9)
+        self.ax_u.legend(loc='upper right', ncol=3, fontsize=8, framealpha=0.9)
+
+        # Легенда N_i(t) - в ПРАВОМ НИЖНЕМ углу (как в РПЗ)
+        self.ax_n.legend(loc='lower right', ncol=8, fontsize=8, framealpha=0.9)
 
         self._heads = []
         for line, _, _ in self._series:
@@ -192,6 +227,8 @@ class ChartPlot(FigureWidget):
         self.ax_mr.set_ylabel("MR")
         self.ax_mr.set_xlabel("Такт моделирования t")
         self.ax_x.set_xlim(0, T_TOTAL - 1)
+        fit_ylim(self.ax_x, x, include=(cl,), pad_hi=0.1)
+        fit_ylim(self.ax_mr, mr, include=(mr_bar,), pad_hi=0.1)
         self.canvas.draw_idle()
 
 

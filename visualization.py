@@ -3,6 +3,7 @@
 """
 
 import matplotlib.pyplot as plt
+import numpy as np
 from config import G, DELTA, T_START, SEED, SCENARIOS
 from experiment import run_experiment_episode
 
@@ -26,6 +27,10 @@ def plot_transition_process(model, scenario='S1'):
 
     if scenario != 'S4':
         plt.axvline(T_START, color='gray', ls=':', label='Момент возникновения особой причины')
+
+    values = np.concatenate([K_no_ctrl, K_ctrl, [G - DELTA, G + DELTA]])
+    margin = 0.05 * np.ptp(values)
+    plt.ylim(values.min() - margin, values.max() + margin)
 
     desc = SCENARIOS[scenario]['description']
     plt.title(f'Переходный процесс суперкритерия K(t) — {desc}')
