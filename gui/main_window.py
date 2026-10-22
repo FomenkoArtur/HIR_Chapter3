@@ -55,7 +55,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Система автоматического управления качеством продукции — апробация контура")
-        self.resize(1400, 860)
+        # Увеличен размер окна для максимальной наглядности на презентации (Full HD)
+        self.resize(1920, 1080)
 
         self.model = None
         self.results = {}
@@ -133,9 +134,9 @@ class MainWindow(QMainWindow):
         playback.addWidget(QLabel("Скорость"))
         playback.addWidget(self.speed_slider)
 
-        metrics_box = QGroupBox("Показатели качества переходного процесса")
+        metrics_box = QGroupBox("Показатели качества")
         metrics_layout = QVBoxLayout(metrics_box)
-        self.metrics_table = make_table(["Показатель", "Без регулятора", "С CNN"], 5)
+        self.metrics_table = make_table(["Показатель", "Без рег.", "С CNN"], 5)
         self.metrics_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.metrics_table.setMaximumHeight(210)
         self.reduction_label = QLabel("Снижение IAE: —")
@@ -158,11 +159,10 @@ class MainWindow(QMainWindow):
         left.addStretch()
         # =================================================================
 
-        left.addWidget(self.save_plot_button)
-        left.addStretch()
         left_widget = QWidget()
         left_widget.setLayout(left)
-        left_widget.setFixedWidth(430)
+        # Ширина левой панели увеличена до комфортной (было 280, стало 360)
+        left_widget.setFixedWidth(360)
 
         self.sim_plot = SimulationPlot()
         root.addWidget(left_widget)
@@ -199,9 +199,9 @@ class MainWindow(QMainWindow):
         self.stop_button = QPushButton("Остановить обучение")
         self.stop_button.setEnabled(False)
         self.stop_button.clicked.connect(self.stop_training)
-        self.load_button = QPushButton("Загрузить веса из файла...")
+        self.load_button = QPushButton("Загрузить веса...")
         self.load_button.clicked.connect(self.load_weights_dialog)
-        self.save_weights_button = QPushButton("Сохранить веса в файл...")
+        self.save_weights_button = QPushButton("Сохранить веса...")
         self.save_weights_button.clicked.connect(self.save_weights_dialog)
         self.train_progress = QProgressBar()
         self.train_progress.setRange(0, 1)
@@ -215,7 +215,8 @@ class MainWindow(QMainWindow):
         left.addWidget(self.train_log, 1)
         left_widget = QWidget()
         left_widget.setLayout(left)
-        left_widget.setFixedWidth(420)
+        # Ширина левой панели увеличена до комфортной (было 280, стало 360)
+        left_widget.setFixedWidth(360)
         self.train_plot = TrainingPlot()
         root.addWidget(left_widget)
         root.addWidget(self.train_plot, 1)
